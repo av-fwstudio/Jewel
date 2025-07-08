@@ -1,28 +1,33 @@
-
-let scene, camera, renderer, model, videoTexture;
+let scene, camera, renderer, model;
 const videoElement = document.getElementById("video");
 const canvasElement = document.getElementById("output");
 const loader = new THREE.GLTFLoader();
 
-// Setup Three.js
 function initThree() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, canvasElement.clientWidth / canvasElement.clientHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   renderer = new THREE.WebGLRenderer({ canvas: canvasElement, alpha: true });
-  renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  canvasElement.width = window.innerWidth;
+  canvasElement.height = window.innerHeight;
   camera.position.z = 5;
 
   const light = new THREE.AmbientLight(0xffffff);
   scene.add(light);
 
-  loader.load("models/earring.glb", function(gltf) {
-    model = gltf.scene;
-    model.scale.set(0.01, 0.01, 0.01);
-    scene.add(model);
-  });
+  loader.load("models/earring.glb",
+    function(gltf) {
+      model = gltf.scene;
+      model.scale.set(0.01, 0.01, 0.01);
+      scene.add(model);
+    },
+    undefined,
+    function(error) {
+      console.error("Failed to load model:", error);
+    }
+  );
 }
 
-// Update model with head rotation
 function updateModel(rotation) {
   if (model) {
     model.rotation.x = rotation.x;
@@ -31,7 +36,6 @@ function updateModel(rotation) {
   }
 }
 
-// Setup MediaPipe FaceMesh
 async function startTracking() {
   const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
@@ -46,7 +50,9 @@ async function startTracking() {
 
   faceMesh.onResults(results => {
     renderer.render(scene, camera);
-    if (results.multiFaceLandmarks[0]) {
+    const detected = !!results.multiFaceLandmarks[0];
+    console.log("Face detected:", detected);
+    if (detected) {
       const rigged = Kalidokit.Face.solve(results.multiFaceLandmarks[0], { runtime: "mediapipe" });
       updateModel(rigged.head.degrees);
     }
@@ -62,11 +68,10 @@ async function startTracking() {
   cameraUtils.start();
 }
 
-// Start everything
 window.onload = () => {
   navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
     videoElement.srcObject = stream;
     initThree();
     startTracking();
-  });
+  }).catch(err => console.error("Webcam access error:", err));
 };
