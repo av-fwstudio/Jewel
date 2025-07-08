@@ -13,7 +13,91 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
+  import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+  import { FaceMesh } from 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js';
+  import { Camera } from 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+  import * as Kalidokit from 'https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js';
+
+  let scene, camera, renderer, model;
+  const videoElement = document.getElementById("video");
+  const canvasElement = document.getElementById("output");
+  const loader = new GLTFLoader();
+
+  function initThree() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ canvas: canvasElement, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    canvasElement.width = window.innerWidth;
+    canvasElement.height = window.innerHeight;
+    camera.position.z = 5;
+
+    const light = new THREE.AmbientLight(0xffffff);
+    scene.add(light);
+
+    loader.load("models/earring.glb",
+      function (gltf) {
+        model = gltf.scene;
+        model.scale.set(0.01, 0.01, 0.01);
+        scene.add(model);
+      },
+      undefined,
+      function (error) {
+        console.error("Failed to load model:", error);
+      }
+    );
+  }
+
+  function updateModel(rotation) {
+    if (model) {
+      model.rotation.x = rotation.x;
+      model.rotation.y = rotation.y;
+      model.rotation.z = rotation.z;
+    }
+  }
+
+  async function startTracking() {
+    const faceMesh = new FaceMesh({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    faceMesh.onResults(results => {
+      renderer.render(scene, camera);
+      const detected = !!results.multiFaceLandmarks[0];
+      if (detected) {
+        const rigged = Kalidokit.Face.solve(results.multiFaceLandmarks[0], { runtime: "mediapipe" });
+        updateModel(rigged.head.degrees);
+      }
+    });
+
+    const cameraUtils = new Camera(videoElement, {
+      onFrame: async () => {
+        await faceMesh.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480,
+    });
+    cameraUtils.start();
+  }
+
+  window.onload = () => {
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      videoElement.srcObject = stream;
+      initThree();
+      startTracking();
+    }).catch(err => console.error("Webcam access error:", err));
+  };
+</script>
+
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
