@@ -1,0 +1,1 @@
+Use a small .glb file for earring, named 'earring.glb'. Place it in the models/ folder.

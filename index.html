@@ -4,19 +4,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Advanced Jewelry Try-On</title>
+  <title>3D Jewelry Try-On</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Advanced Jewelry Try-On</h1>
-  <div id="items">
-    <img src="assets/earring.png" class="item" onclick="selectItem('earring')" />
-  </div>
-  <video id="inputVideo" autoplay playsinline muted></video>
-  <canvas id="overlay"></canvas>
-
+  <h1>3D Jewelry Try-On</h1>
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="output"></canvas>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
