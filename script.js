@@ -32,11 +32,19 @@ faceMesh.onResults(results => {
     const landmarks = results.multiFaceLandmarks[0];
     const leftEar = landmarks[234];
     const rightEar = landmarks[454];
+    const leftEye = landmarks[133];
+    const rightEye = landmarks[362];
+
+    const faceWidth = Math.hypot(
+      (rightEye.x - leftEye.x) * canvasElement.width,
+      (rightEye.y - leftEye.y) * canvasElement.height
+    );
+    const earringSize = faceWidth * 0.2;
 
     [leftEar, rightEar].forEach((ear) => {
-      const x = ear.x * canvasElement.width - 25;
-      const y = ear.y * canvasElement.height - 25;
-      canvasCtx.drawImage(earringImage, x, y, 50, 50);
+      const x = ear.x * canvasElement.width - earringSize / 2;
+      const y = ear.y * canvasElement.height - earringSize / 2;
+      canvasCtx.drawImage(earringImage, x, y, earringSize, earringSize);
     });
   }
 });
