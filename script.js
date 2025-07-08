@@ -1,49 +1,52 @@
+
+let selectedItem = null;
+let earringImage = new Image();
+earringImage.src = "assets/earring.png";
+
+function selectItem(item) {
+  selectedItem = item;
+}
+
 const videoElement = document.getElementById('inputVideo');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d');
-const startBtn = document.getElementById('startBtn');
 
-startBtn.addEventListener('click', async () => {
-  const faceMesh = new FaceMesh({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-  });
-
-  faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: true,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  });
-
-  faceMesh.onResults(results => {
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-    if (results.multiFaceLandmarks) {
-      for (const landmarks of results.multiFaceLandmarks) {
-        for (let i = 0; i < landmarks.length; i++) {
-          const x = landmarks[i].x * canvasElement.width;
-          const y = landmarks[i].y * canvasElement.height;
-          canvasCtx.beginPath();
-          canvasCtx.arc(x, y, 1.5, 0, 2 * Math.PI);
-          canvasCtx.fillStyle = 'red';
-          canvasCtx.fill();
-        }
-      }
-    }
-
-    canvasCtx.restore();
-  });
-
-  const camera = new Camera(videoElement, {
-    onFrame: async () => await faceMesh.send({image: videoElement}),
-    width: 640,
-    height: 480
-  });
-
-  camera.start();
+const faceMesh = new FaceMesh({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
+
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  refineLandmarks: true,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+faceMesh.onResults(results => {
+  canvasElement.width = videoElement.videoWidth;
+  canvasElement.height = videoElement.videoHeight;
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  if (results.multiFaceLandmarks && selectedItem === 'earring') {
+    const landmarks = results.multiFaceLandmarks[0];
+    const leftEar = landmarks[234];
+    const rightEar = landmarks[454];
+
+    [leftEar, rightEar].forEach((ear) => {
+      const x = ear.x * canvasElement.width - 25;
+      const y = ear.y * canvasElement.height - 25;
+      canvasCtx.drawImage(earringImage, x, y, 50, 50);
+    });
+  }
+});
+
+const camera = new Camera(videoElement, {
+  onFrame: async () => {
+    await faceMesh.send({image: videoElement});
+  },
+  width: 640,
+  height: 480
+});
+
+camera.start();
