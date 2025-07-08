@@ -1,0 +1,13 @@
+
+body {
+  margin: 0;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+video, canvas {
+  width: 90vw;
+  max-width: 600px;
+  height: auto;
+  border-radius: 10px;
+  margin-top: 1rem;
+}
