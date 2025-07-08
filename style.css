@@ -1,13 +1,31 @@
-
 body {
   margin: 0;
   text-align: center;
-  background-color: #f8f9fa;
+  font-family: sans-serif;
+  background: #f0f0f0;
 }
-video, canvas {
+
+h1 {
+  margin-top: 20px;
+}
+
+#videoContainer {
+  position: relative;
   width: 90vw;
-  max-width: 600px;
+  max-width: 640px;
+  margin: 20px auto;
+}
+
+video, canvas {
+  width: 100%;
   height: auto;
-  border-radius: 10px;
-  margin-top: 1rem;
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#startBtn {
+  padding: 10px 20px;
+  font-size: 16px;
 }

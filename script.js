@@ -1,12 +1,13 @@
-
 const videoElement = document.getElementById('inputVideo');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d');
+const startBtn = document.getElementById('startBtn');
 
-async function main() {
+startBtn.addEventListener('click', async () => {
   const faceMesh = new FaceMesh({
-    locateFile: (file) => \`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/\${file}\`
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
+
   faceMesh.setOptions({
     maxNumFaces: 1,
     refineLandmarks: true,
@@ -15,9 +16,13 @@ async function main() {
   });
 
   faceMesh.onResults(results => {
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
     if (results.multiFaceLandmarks) {
       for (const landmarks of results.multiFaceLandmarks) {
         for (let i = 0; i < landmarks.length; i++) {
@@ -30,6 +35,7 @@ async function main() {
         }
       }
     }
+
     canvasCtx.restore();
   });
 
@@ -38,7 +44,6 @@ async function main() {
     width: 640,
     height: 480
   });
-  camera.start();
-}
 
-main();
+  camera.start();
+});
